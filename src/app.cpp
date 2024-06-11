@@ -13,8 +13,8 @@ void App::main_loop() {
     set_color(1.0f, 1.0f, 1.0f, 1.0f);
 
     axolote::gl::Shader shader{
-        "resources/shaders/def_vertex_shader.glsl",
-        "resources/shaders/def_fragment_shader.glsl"
+        "resources/shaders/vertex.glsl",
+        "resources/shaders/fragment.glsl"
     };
 
     axolote::Camera camera{};
