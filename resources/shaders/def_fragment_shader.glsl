@@ -11,6 +11,7 @@ struct Light {
 out vec4 FragColor;
 
 in vec3 color;
+
 in vec2 tex_coord;
 in vec3 normal;
 in vec3 current_pos;

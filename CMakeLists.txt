@@ -44,6 +44,7 @@ set(SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 set(
     SOURCE_FILES
     ${SOURCE_DIR}/app.cpp
+    ${SOURCE_DIR}/chunk.cpp
     ${SOURCE_DIR}/main.cpp
 )
 
