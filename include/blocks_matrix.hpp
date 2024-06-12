@@ -1,3 +1,10 @@
+/**
+ * \file blocks_matrix.hpp
+ * \brief BlockMatrix struct header
+ * \author João Vitor Espig (JotaEspig)
+ * \date June 12, 2024
+ * \version June 12, 2024
+ **/
 #pragma once
 
 #include <array>
@@ -5,13 +12,46 @@
 
 #include "block.hpp"
 
+/**
+ * \brief BlockMatrix struct
+ * \author João Vitor Espig (JotaEspig)
+ * \date June 12, 2024
+ * \version June 12, 2024
+ **/
 template <std::size_t X_SIZE, std::size_t Y_SIZE, std::size_t Z_SIZE>
 struct BlockMatrix {
+    /** Blocks matrix **/
     std::array<std::array<std::array<Block, Z_SIZE>, Y_SIZE>, X_SIZE> blocks;
 
+    /**
+     * \brief BlockMatrix constructor
+     * \author João Vitor Espig (JotaEspig)
+     * \date June 12, 2024
+     * \version June 12, 2024
+     **/
     BlockMatrix();
 
+    /**
+     * \brief Check if a block should be drawn
+     * \author João Vitor Espig (JotaEspig)
+     * \date June 12, 2024
+     * \version June 12, 2024
+     * \param x - X position
+     * \param y - Y position
+     * \param z - Z position
+     * \returns true if the block should be drawn, false otherwise
+     **/
     bool should_draw(std::size_t x, std::size_t y, std::size_t z) const;
+    /**
+     * \brief Block getter
+     * \author João Vitor Espig (JotaEspig)
+     * \date June 12, 2024
+     * \version June 12, 2024
+     * \param x - X position
+     * \param y - Y position
+     * \param z - Z position
+     * \returns Block reference
+     **/
     Block &operator()(std::size_t x, std::size_t y, std::size_t z);
 };
 
