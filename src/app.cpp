@@ -13,28 +13,26 @@ void App::main_loop() {
     set_color(1.0f, 1.0f, 1.0f, 1.0f);
 
     axolote::gl::Shader shader{
-        "resources/shaders/vertex.glsl",
-        "resources/shaders/fragment.glsl"
+        "resources/shaders/vertex.glsl", "resources/shaders/fragment.glsl"
     };
 
     axolote::Camera camera{};
-    camera.pos = glm::vec3{4.5f, 4.5f, 25.0f};
+    camera.pos = glm::vec3{(float)CHUNK_XZ_SIZE / 2, (float)CHUNK_Y_SIZE / 2, 100.0f};
     camera.speed = 5.0f;
     camera.sensitivity = 65000.0f;
 
     auto chunk = std::make_shared<Chunk>();
     std::vector<Block> blocks;
-    for (int x = 0; x < 10; x++) {
-        for (int y = 0; y < 10; y++) {
-            for (int z = 0; z < 10; z++) {
-                blocks.push_back(
-                    {glm::translate(glm::mat4{1.0f}, glm::vec3{x, y, z}),
-                     glm::vec3{(float)x / 10, (float)y / 10, (float)z / 10}}
-                );
+    for (int x = 0; x < CHUNK_XZ_SIZE; ++x) {
+        for (int y = 0; y < CHUNK_Y_SIZE; ++y) {
+            for (int z = 0; z < CHUNK_XZ_SIZE; ++z) {
+                Block block{};
+                block.type = y == CHUNK_Y_SIZE - 1 ? Block::Type::Grass
+                                                   : Block::Type::Dirt;
+                chunk->blocks.blocks[x][y][z] = block;
             }
         }
     }
-    chunk->set_blocks(blocks);
     chunk->setup_instanced_vbo();
     chunk->bind_shader(shader);
 

@@ -1,4 +1,9 @@
 #include <cstddef>
+#include <iostream>
+
+#include <axolote/glad/glad.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 
 #include "chunk.hpp"
 
@@ -40,13 +45,9 @@ Chunk::Chunk() {
     vao.unbind();
 }
 
-void Chunk::set_blocks(const std::vector<Block> &blocks) {
-    Chunk::blocks = blocks;
-}
-
 void Chunk::setup_instanced_vbo() {
     setup_instanced_color_vbo();
-    setup_instanced_matrix_vbo();
+    setup_instanced_offset_vbo();
 }
 
 void Chunk::bind_shader(const axolote::gl::Shader &shader) {
@@ -59,13 +60,43 @@ axolote::gl::Shader Chunk::get_shader() const {
 
 void Chunk::update(double dt) {
     (void)dt;
+
+    drawable_blocks_amount = 0;
+    std::vector<glm::vec3> offsets;
+    std::vector<glm::vec4> colors;
+    for (std::size_t i = 0; i < CHUNK_XZ_SIZE; ++i) {
+        for (std::size_t j = 0; j < CHUNK_Y_SIZE; ++j) {
+            for (std::size_t k = 0; k < CHUNK_XZ_SIZE; ++k) {
+                const Block &block = blocks(i, j, k);
+                if (!blocks.should_draw(i, j, k)) {
+                    continue;
+                }
+
+                offsets.push_back(glm::vec3{(float)i, (float)j, (float)k});
+                colors.push_back(block.color());
+                ++drawable_blocks_amount;
+            }
+        }
+    }
+
+    vao.bind();
+    instanced_offset_vbo.bind();
+    glBufferSubData(
+        GL_ARRAY_BUFFER, 0, sizeof(glm::vec3) * offsets.size(), offsets.data()
+    );
+    instanced_color_vbo.bind();
+    glBufferSubData(
+        GL_ARRAY_BUFFER, 0, sizeof(glm::vec4) * colors.size(), colors.data()
+    );
+    instanced_offset_vbo.unbind();
+    vao.unbind();
 }
 
 void Chunk::draw() {
     vao.bind();
     ebo.bind();
     glDrawElementsInstanced(
-        GL_TRIANGLES, indices_size, GL_UNSIGNED_INT, 0, blocks.size()
+        GL_TRIANGLES, indices_size, GL_UNSIGNED_INT, 0, drawable_blocks_amount
     );
     ebo.unbind();
     vao.unbind();
@@ -76,59 +107,52 @@ void Chunk::draw(const glm::mat4 &mat) {
     draw();
 }
 
+void Chunk::setup_instanced_offset_vbo() {
+    std::vector<glm::vec3> offsets;
+    for (std::size_t i = 0; i < CHUNK_XZ_SIZE; ++i) {
+        for (std::size_t j = 0; j < CHUNK_Y_SIZE; ++j) {
+            for (std::size_t k = 0; k < CHUNK_XZ_SIZE; ++k) {
+                offsets.push_back(glm::vec3{(float)i, (float)j, (float)k});
+            }
+        }
+    }
+
+    vao.bind();
+    instanced_offset_vbo.bind();
+    instanced_offset_vbo.buffer_data(
+        sizeof(glm::vec3) * MAX_BLOCKS, nullptr, GL_DYNAMIC_DRAW
+    );
+    vao.link_attrib(
+        instanced_offset_vbo, 3, 3, GL_FLOAT, sizeof(glm::vec3), (void *)0
+    );
+    vao.attrib_divisor(instanced_offset_vbo, 3, 1);
+
+    instanced_offset_vbo.unbind();
+    vao.unbind();
+}
+
 void Chunk::setup_instanced_color_vbo() {
-    std::vector<glm::vec3> colors;
-    for (const auto &block : blocks) {
-        colors.push_back(block.color);
+    std::vector<glm::vec4> colors;
+    for (std::size_t i = 0; i < CHUNK_XZ_SIZE; ++i) {
+        for (std::size_t j = 0; j < CHUNK_Y_SIZE; ++j) {
+            for (std::size_t k = 0; k < CHUNK_XZ_SIZE; ++k) {
+                const Block &block = blocks(i, j, k);
+                colors.push_back(block.color());
+            }
+        }
     }
 
     vao.bind();
     instanced_color_vbo.bind();
     instanced_color_vbo.buffer_data(
-        sizeof(glm::vec3) * colors.size(), colors.data(), GL_STATIC_DRAW
+        sizeof(glm::vec4) * MAX_BLOCKS, nullptr, GL_DYNAMIC_DRAW
     );
     vao.link_attrib(
-        instanced_color_vbo, 3, 3, GL_FLOAT, sizeof(glm::vec3), (void *)0
+        instanced_color_vbo, 4, 4, GL_FLOAT, sizeof(glm::vec4), (void *)0
     );
 
-    vao.attrib_divisor(instanced_color_vbo, 3, 1);
+    vao.attrib_divisor(instanced_color_vbo, 4, 1);
 
     instanced_color_vbo.unbind();
-    vao.unbind();
-}
-
-void Chunk::setup_instanced_matrix_vbo() {
-    std::vector<glm::mat4> matrices;
-    for (const auto &block : blocks) {
-        matrices.push_back(block.pos);
-    }
-
-    vao.bind();
-    instanced_matrix_vbo.bind();
-    instanced_matrix_vbo.buffer_data(
-        sizeof(glm::mat4) * matrices.size(), matrices.data(), GL_STATIC_DRAW
-    );
-    vao.link_attrib(
-        instanced_matrix_vbo, 4, 4, GL_FLOAT, sizeof(glm::mat4), (void *)0
-    );
-    vao.link_attrib(
-        instanced_matrix_vbo, 5, 4, GL_FLOAT, sizeof(glm::mat4),
-        (void *)(sizeof(glm::vec4))
-    );
-    vao.link_attrib(
-        instanced_matrix_vbo, 6, 4, GL_FLOAT, sizeof(glm::mat4),
-        (void *)(2 * sizeof(glm::vec4))
-    );
-    vao.link_attrib(
-        instanced_matrix_vbo, 7, 4, GL_FLOAT, sizeof(glm::mat4),
-        (void *)(3 * sizeof(glm::vec4))
-    );
-
-    vao.attrib_divisor(instanced_matrix_vbo, 4, 1);
-    vao.attrib_divisor(instanced_matrix_vbo, 5, 1);
-    vao.attrib_divisor(instanced_matrix_vbo, 6, 1);
-    vao.attrib_divisor(instanced_matrix_vbo, 7, 1);
-
-    instanced_matrix_vbo.unbind();
     vao.unbind();
 }

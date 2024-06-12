@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 
 struct Block {
-    glm::mat4 pos{1.0f};
-    glm::vec3 color{1.0f, 1.0f, 1.0f};
+    enum class Type { Air, Dirt, Grass, Stone, Water, Wood };
+    Type type{Type::Air};
+
+    glm::vec4 color() const;
 };
