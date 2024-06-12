@@ -72,7 +72,9 @@ void Chunk::update(double dt) {
                     continue;
                 }
 
-                offsets.push_back(glm::vec3{(float)i, (float)j, (float)k});
+                glm::vec3 aux{(float)i, (float)j, (float)k};
+                aux += pos;
+                offsets.push_back(aux);
                 colors.push_back(block.color());
                 ++drawable_blocks_amount;
             }

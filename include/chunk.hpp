@@ -4,12 +4,13 @@
 
 #include "blocks_matrix.hpp"
 
-#define CHUNK_XZ_SIZE 16
-#define CHUNK_Y_SIZE 50
+#define CHUNK_XZ_SIZE 10
+#define CHUNK_Y_SIZE 10
 #define MAX_BLOCKS (CHUNK_XZ_SIZE * CHUNK_Y_SIZE * CHUNK_XZ_SIZE)
 
 class Chunk : public axolote::Drawable {
 public:
+    glm::vec3 pos{0.0f, 0.0f, 0.0f};
     BlockMatrix<CHUNK_XZ_SIZE, CHUNK_Y_SIZE, CHUNK_XZ_SIZE> blocks;
 
     Chunk();
