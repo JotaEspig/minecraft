@@ -40,7 +40,7 @@ bool BlockMatrix<X_SIZE, Y_SIZE, Z_SIZE>::should_draw(
         return true;
     }
 
-    // Check if any of the neighbors is air, if so, draw the block
+    // Check if any of the adjacent blocks is air, if so, draw this block.
     if (x > 0 && blocks[x - 1][y][z].type == Block::Type::Air) {
         return true;
     }
